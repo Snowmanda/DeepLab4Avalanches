@@ -37,6 +37,7 @@ class AvalancheDatasetGrid(Dataset):
 
         # open satellite images - all tiffs found in root directory
         all_tiffs = data_utils.list_paths_in_dir(root_dir, ('.tif', '.TIF', '.img', '.IMG'))
+        print("alltiff: ", all_tiffs)
         self.vrt = data_utils.build_padded_vrt(all_tiffs, tile_size)
 
         geo_transform = self.vrt.GetGeoTransform()
@@ -46,7 +47,7 @@ class AvalancheDatasetGrid(Dataset):
 
         if aval_path:
             # get rasterised avalanches
-            self.aval_raster = data_utils.build_padded_vrt(aval_path, tile_size)
+            self.aval_raster = data_utils.build_padded_vrt(aval_path, 5000)
             self.aval_ulx, self.aval_uly, _, _ = data_utils.get_raster_extent(self.aval_raster)
 
         # get DEM if specified

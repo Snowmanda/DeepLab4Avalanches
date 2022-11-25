@@ -110,8 +110,8 @@ def main(args):
                                     tile_size=tile_size,
                                     overlap=border,
                                     bands=[1, 2, 3],
-                                    means=[1023.9, 949.9, 800],
-                                    stds=[823.4, 975.5, 400],
+                                    means=[202.9, 206.9, 215],
+                                    stds=[39, 37, 30],
                                     )
 
     test_loader = DataLoader(test_set, batch_size=1, shuffle=False, num_workers=4,
@@ -164,7 +164,7 @@ if __name__ == "__main__":
     parser.add_argument('--output_path', type=str, required = True, help='path to output file of predictions. Will be created or overwritten.')
     parser.add_argument('--checkpoint', type=str, required = True, help='model checkpoint to use')
     parser.add_argument('--aval_path', type=str, default='', help='ground truth avalanche path if available for computing metrics')
-    parser.add_argument('--tile_size', type=int, default=1024, help='Tile size to be used for predictions. Default: 1024')
+    parser.add_argument('--tile_size', type=int, default=2048, help='Tile size to be used for predictions. Default: 1024')
     parser.add_argument('--border', type=int, default=100, help='Border to be disregarded for each sample in pixels. Default: 100')
     args = parser.parse_args()
     main(args)

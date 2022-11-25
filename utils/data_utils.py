@@ -28,7 +28,7 @@ def list_paths_in_dir(root_dir, file_endings=None):
     return files
 
 
-def build_padded_vrt(sources, padding=1000):
+def build_padded_vrt(sources, padding=5000):
     """ Creates an inmemory gdal VRT from a list of sources with additional padding
     :param sources: list of paths to raster files
     :param padding: amount of padding in meters around the vrt to avoid read errors
@@ -76,7 +76,6 @@ def get_all_bands_as_numpy(raster, offset=(0, 0), res=None, bands=None, means=No
         rb = raster.GetRasterBand(band)
         rb.SetNoDataValue(means[i] if means else 0)
         arr = rb.ReadAsArray(offset[0], offset[1], res[0], res[1], buf_type=gdal.GDT_Float32)
-
         # Standardise
         if means:
             arr -= means[i]
@@ -146,7 +145,7 @@ def get_numpy_from_ogr_shapefile(shapefile, ref_raster, offset=(0, 0), res=None)
     return shape_raster.ReadAsArray()
 
 
-def rasterise_geopandas(dataset, tile_size, offset, burn_val=1, res=1.5, individual=False):
+def rasterise_geopandas(dataset, tile_size, offset, burn_val=1, res=0.5, individual=False):
     """
     Rasterise geopandas dataset and return numpy array
 
@@ -232,19 +231,18 @@ def generate_point_grid(region, tile_size, pixel_w ,overlap=0):
     points = gpd.GeoSeries(map(Point, zip(X, Y)))
 
     # slightly expand regions and filter out points outside of polygons
-    expanded_region = region.buffer(tile_size*pixel_w/2, join_style=2)
+    expanded_region = region.buffer(tile_size/(4), join_style=2)
     mask = points.within(expanded_region.loc[0])
     for i in range(1, len(expanded_region)):
         mask |= points.within(expanded_region.loc[i])
     points = points.loc[mask]
-
     # shift coordinates such that they are in the top left of each patch
-    points = points.translate(xoff=-tile_size*pixel_w*1/2, yoff=tile_size*pixel_w*1/2)
+    points = points.translate(xoff=-tile_size*pixel_w*3/4, yoff=tile_size*pixel_w*3/4)
 
     return points
 
 
-def generate_sample_points(avalanches, region, tile_size, no_aval_ratio=0.05, n=200):
+def generate_sample_points(avalanches, region, tile_size, no_aval_ratio=0.02, n=200):
     """ Intelligently choose samples such that there is no overlap but large avalanches are covered
         Also add samples with no avalanche present
 
@@ -275,10 +273,9 @@ def generate_sample_points(avalanches, region, tile_size, no_aval_ratio=0.05, n=
     # add points with no avalanche
     for i in tqdm(range(0, int(no_aval_ratio * len(avalanches))), desc='Generating points with no avalanches'):
         for j in range(0, 100): # max 100 tries
-            p = get_random_point_in_region(region)
-
             # only add point if far enough from all avalanches
-            if not (sample_points.distance(p) < tile_size).any():
+            if not (sample_points.distance(p) < 0.25*tile_size).any():
+
                 sample_points = sample_points.append(gpd.GeoSeries(p))
                 break
 
