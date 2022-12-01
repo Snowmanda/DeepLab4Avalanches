@@ -76,13 +76,18 @@ def get_all_bands_as_numpy(raster, offset=(0, 0), res=None, bands=None, means=No
         rb = raster.GetRasterBand(band)
         rb.SetNoDataValue(means[i] if means else 0)
         arr = rb.ReadAsArray(offset[0], offset[1], res[0], res[1], buf_type=gdal.GDT_Float32)
+        #print("res: ", res)
+        #print("offset: ", offset)
+        #print(arr.shape)
         # Standardise
-        if means:
+        if means and type(arr) is np.ndarray:
             arr -= means[i]
-        if stds:
+        if stds and type(arr) is np.ndarray:
             arr /= stds[i]
-
-        band_list.append(arr)
+        if type(arr) is np.ndarray:
+            band_list.append(arr)
+        else:
+            band_list.append(np.zeros((res[0],res[1]),dtype=np.float32))
         arr = None
         rb = None
         i += 1
@@ -145,7 +150,7 @@ def get_numpy_from_ogr_shapefile(shapefile, ref_raster, offset=(0, 0), res=None)
     return shape_raster.ReadAsArray()
 
 
-def rasterise_geopandas(dataset, tile_size, offset, burn_val=1, res=0.5, individual=False):
+def rasterise_geopandas(dataset, tile_size, offset, burn_val=1, res=0.25, individual=False):
     """
     Rasterise geopandas dataset and return numpy array
 
@@ -224,14 +229,14 @@ def generate_point_grid(region, tile_size, pixel_w ,overlap=0):
 
     # generate uniform grid over the entire extent
 
-    minx, miny, maxx, maxy = region.buffer(tile_size, join_style=2).total_bounds
+    minx, miny, maxx, maxy = region.total_bounds
     #minx, miny, maxx, maxy = region.total_bounds
     X, Y = np.mgrid[minx:maxx + spacing:spacing, miny:maxy + spacing:spacing]
     X, Y = X.ravel(), Y.ravel()
     points = gpd.GeoSeries(map(Point, zip(X, Y)))
 
-    # slightly expand regions and filter out points outside of polygons
-    expanded_region = region.buffer(tile_size/(4), join_style=2)
+    #slightly expand regions and filter out points outside of polygons
+    expanded_region = region.buffer(tile_size/4, join_style = 2)
     mask = points.within(expanded_region.loc[0])
     for i in range(1, len(expanded_region)):
         mask |= points.within(expanded_region.loc[i])
@@ -242,7 +247,7 @@ def generate_point_grid(region, tile_size, pixel_w ,overlap=0):
     return points
 
 
-def generate_sample_points(avalanches, region, tile_size, no_aval_ratio=0.02, n=200):
+def generate_sample_points(avalanches, region, tile_size, no_aval_ratio=0.5, n=200):
     """ Intelligently choose samples such that there is no overlap but large avalanches are covered
         Also add samples with no avalanche present
 
@@ -267,7 +272,7 @@ def generate_sample_points(avalanches, region, tile_size, no_aval_ratio=0.02, n=
             diff = diff.difference(p.buffer(tile_size, cap_style=3))
 
             # only add point if it is not too close to another (could be too close to another avalanche)
-            if not (sample_points.iloc[-n:].distance(p) < tile_size).any():
+            if not (sample_points.iloc[-n:].distance(p) < 20).any():
                 sample_points = sample_points.append(gpd.GeoSeries(p))
 
     # add points with no avalanche

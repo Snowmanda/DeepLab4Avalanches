@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 python -m evaluation.quantitativeEvaluationDroneData \
---output_dir '/home/elyas/Desktop/SpotTheAvalanche/DroneData/Output_0.25' \
+--output_dir '/home/elyas/Desktop/SpotTheAvalanche/DroneData/Output_' \
 --img_dir 'Drone_imagery_0.25' \
 --root_dir '/home/elyas/Desktop/SpotTheAvalanche/DroneData/Regions' \
 --experiment_folder '/home/elyas/Desktop/SpotTheAvalanche/DeepLab4Avalanches/experiments' \

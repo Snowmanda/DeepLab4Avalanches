@@ -23,6 +23,7 @@ def main(hparams):
     my_experiment = EasyExperiment
     my_dataset = AvalancheDatasetPoints
     my_collate_fn = ba_collate_fn
+    print(hparams.model )
     if hparams.model == 'mask_rcnn':
         my_experiment = InstSegmentation
         my_dataset = AvalancheInstDataset
@@ -85,7 +86,7 @@ def main(hparams):
                          hparams.val_ava_file,
                          hparams.val_region_file,
                          dem_path=hparams.dem_dir,
-                         tile_size=512,
+                         tile_size=2048,
                          bands=hparams.bands,
                          certainty=None,
                          batch_augm=0,
@@ -100,7 +101,7 @@ def main(hparams):
                               hparams.val_ava_file2,
                               hparams.val_region_file2,
                               dem_path=hparams.dem_dir,
-                              tile_size=512,
+                              tile_size=2048,
                               bands=hparams.bands,
                               certainty=None,
                               batch_augm=0,
@@ -124,31 +125,31 @@ def main(hparams):
     trainer.fit(model, train_loader, val_loader)
 
     # Test and compare on davos ground truth data when fininshed
-    test_set = DavosGtDataset(hparams.val_root_dir,
-                              hparams.val_gt_file,
-                              hparams.val_ava_file,
-                              dem_path=hparams.dem_dir,
-                              tile_size=512,
-                              bands=hparams.bands,
-                              means=hparams.means,
-                              stds=hparams.stds,
-                              )
-    if hparams.val_gt_file2:
-        test_set2 = DavosGtDataset(hparams.val_root_dir2,
-                                   hparams.val_gt_file2,
-                                   hparams.val_ava_file2,
-                                   dem_path=hparams.dem_dir,
-                                   tile_size=512,
-                                   bands=hparams.bands,
-                                   means=hparams.means,
-                                   stds=hparams.stds,
-                                   )
-        test_set = ConcatDataset([test_set, test_set2])
+    #test_set = DavosGtDataset(hparams.val_root_dir,
+    #                          hparams.val_gt_file,
+    #                          hparams.val_ava_file,
+    #                          dem_path=hparams.dem_dir,
+    #                          tile_size=512,
+    #                          bands=hparams.bands,
+    #                          means=hparams.means,
+    #                          stds=hparams.stds,
+    #                          )
+    #if hparams.val_gt_file2:
+    #    test_set2 = DavosGtDataset(hparams.val_root_dir2,
+    #                               hparams.val_gt_file2,
+    #                               hparams.val_ava_file2,
+    #                               dem_path=hparams.dem_dir,
+    #                               tile_size=512,
+    #                               bands=hparams.bands,
+    #                               means=hparams.means,
+    #                               stds=hparams.stds,
+    #                               )
+    #    test_set = ConcatDataset([test_set, test_set2])
 
-    test_loader = DataLoader(test_set, batch_size=hparams.batch_size, shuffle=False, num_workers=hparams.num_workers,
-                             drop_last=False, pin_memory=True)
-    trainer.test(test_dataloaders=test_loader)
-
+    #test_loader = DataLoader(test_set, batch_size=hparams.batch_size, shuffle=False, num_workers=hparams.num_workers,
+    #                         drop_last=False, pin_memory=True)
+    #trainer.test(test_dataloaders=test_loader)
+#
 
 if __name__ == "__main__":
     parser = ArgumentParser(description='train avalanche mapping network')
@@ -181,8 +182,8 @@ if __name__ == "__main__":
                         help='File name of shapefile in root directory defining validation area')
     parser.add_argument('--dem_dir', type=str, default=None,
                         help='directory of the DEM within root_dir')
-    parser.add_argument('--val_gt_file', type=str, default='Methodenvergleich2018.shp',
-                        help='File name of gt comparison data in davos')
+    #parser.add_argument('--val_gt_file', type=str, default='Methodenvergleich2018.shp',
+    #                    help='File name of gt comparison data in davos')
 
     # use these when combining two datasets - 2018 and 2019
     parser.add_argument('--train_root_dir2', type=str, default='',
@@ -197,8 +198,8 @@ if __name__ == "__main__":
                         help='File name of avalanche shapefile in root directory of training set 2')
     parser.add_argument('--val_region_file2', type=str, default='',
                         help='File name of shapefile in root directory defining validation area 2')
-    parser.add_argument('--val_gt_file2', type=str, default='',
-                        help='File name of gt comparison data in davos 2')
+    #parser.add_argument('--val_gt_file2', type=str, default='',
+    #                    help='File name of gt comparison data in davos 2')
 
     # Model specific args
     parser = EasyExperiment.add_model_specific_args(parser)

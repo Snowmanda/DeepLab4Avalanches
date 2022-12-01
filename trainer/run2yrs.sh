@@ -2,40 +2,47 @@
 
 export PYTHONPATH=$PWD
 	
-exp_name="nameofExperiment"
-
-checkpoint="" # specify path if retraining is desired "/path/to/the/checkpoint/file.ckpt"
-resume_training=False
+exp_name="Training0.25_1"
+# specify path if retraining is desired "/path/to/the/checkpoint/file.ckpt"
+checkpoint="/home/elyas/Desktop/SpotTheAvalanche/DroneData/Checkpoints/epoch=12-step=32850.ckpt"
+resume_training=True
 
 # Dataset hyperparameters
-train_root_dir="/path/to/root/directory/containingTIFSandSHPS_yr1/"
-train_ava_file="avalanchePolygons_yr1.shp"
-train_region_file="Train_area_yr1.shp"
-val_root_dir="$train_root_dir"
-val_ava_file="$train_ava_file"
-val_region_file="Vali_area_yr1.shp"
-train_root_dir2="/path/to/root/directory/containingTIFSandSHPS_yr2/"
-train_ava_file2="avalanchePolygons_yr2.shp"
-train_region_file2="Train_area_yr2.shp"
-val_root_dir2="$train_root_dir2"
-val_ava_file2="$train_ava_file2"
-val_region_file2="Vali_area_yr2.shp"
-val_gt_file="Methodenvergleich2018.shp" # optional test with avalanche point validation data
-val_gt_file2="Methodenvergleich2019.shp" # optional test with avalanche point validation data
-dem_dir="/path/to/DEM/DHM.tif"
+train_root_dir="/home/elyas/Desktop/SpotTheAvalanche/Training/Arelen/Arelen_1/"
+train_ava_file="Annotation_20220203_04_SalezerArelen_lv95.shp"
+train_region_file="AOI_Arelen.shp"
+val_root_dir="/home/elyas/Desktop/SpotTheAvalanche/Training/Huereli/Huereli_1"
+val_ava_file="Annotation_20210201_Huereli.shp"
+val_region_file="AOI_Huereli.shp"
+
+train_root_dir2="/home/elyas/Desktop/SpotTheAvalanche/Training/Breaman/Breaman_1/"
+train_ava_file2="Annotation_20190119_BraemaN_lv95.shp"
+train_region_file2="AOI_braema.shp"
+val_root_dir2="/home/elyas/Desktop/SpotTheAvalanche/Training/Huereli/Huereli_1"
+val_ava_file2="Annotation_20210201_Huereli.shp"
+val_region_file2="AOI_Huereli.shp"
+# optional test with avalanche point validation data
+#val_gt_file=''
+# optional test with avalanche point validation data
+#val_gt_file2=''
+dem_dir='/home/elyas/Desktop/SpotTheAvalanche/DroneData/DEM/davos_dem_25cm_lv95.tif'
 tile_size=512
-aval_certainty=3
-bands="3 4" # bands to be used from the optical data
+aval_certainty=1
+# bands to be used from the optical data
+bands='1 2 3'
 num_workers=20
-means="1023.9 949.9" # mean for the bands specified
-stds="823.4 975.5" # std for the bands specified
+# mean for the bands specified
+means="180 180 180"
+# std for the bands specified
+stds="80 80 80"
 
 # Data augmentation
 hflip_p=0.5
 rand_rotation=180
 
 # Training hyperparameters
-loss=weighted_bce # bce, weighted_bce, focal, soft_dice or bce_edges
+# bce, weighted_bce, focal, soft_dice or bce_edges
+loss=weighted_bce
 seed=42
 deterministic=False
 gpus=1
@@ -48,22 +55,27 @@ log_every_n_steps=200
 flush_logs_every_n_steps=200
 accelerator="ddp"
 sync_batchnorm=True
-log_dir="/path/to/experiments"
+log_dir="/home/elyas/Desktop/SpotTheAvalanche/DroneData/Checkpoints"
 benchmark=True
-
-
 # Model hyperparameters
-model='avanet' # avanet or deeplabv3+ or deeplab or sa_unet or mask_rcnn
-backbone='adapted_resnet34' # adapted_resnetxx, resnetxx or any other model from pytorch_segmentation_models submodule
-decoder='avanet' # avanet or deeplabv3+ or deeplab or sa_unet or mask_rcnn
-optimiser="adam" # adam or sgd
+
+# avanet or deeplabv3+ or deeplab or sa_unet or mask_rcnn
+model='avanet'
+# adapted_resnetxx, resnetxx or any other model from pytorch_segmentation_models submodule
+backbone='adapted_resnet34'
+# avanet or deeplabv3+ or deeplab or sa_unet or mask_rcnn
+decoder='avanet'
+# adam or sgd
+optimiser="adam"
 lr=1e-4
-lr_scheduler='multistep' # multistep or plateau
+# multistep or plateau
+lr_scheduler='multistep'
 scheduler_steps="10"
 scheduler_gamma=0.25
 momentum=0.9
-weight_decay=0.0 
-in_channels=3
+weight_decay=0.0
+#In_Channel=3
+in_channels=4
 train_viz_interval=2000
 val_viz_interval=1
 val_viz_idx=4
@@ -93,9 +105,7 @@ python -m trainer.train \
 --val_root_dir2 $val_root_dir2 \
 --val_ava_file2 $val_ava_file2 \
 --val_region_file2 $val_region_file2 \
---val_gt_file $val_gt_file \
---val_gt_file2 $val_gt_file2 \
---dem_dir "$dem_dir" \
+--dem_dir $dem_dir \
 --tile_size $tile_size \
 --aval_certainty $aval_certainty \
 --bands $bands \
